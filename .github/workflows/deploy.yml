@@ -18,15 +18,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    name: Decide whether to deploy
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.decide.outputs.deploy }}
+    steps:
+      - id: decide
+        env:
+          DEPLOY_ENABLED: ${{ vars.DEPLOY_ENABLED }}
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          CI_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          CI_EVENT: ${{ github.event.workflow_run.event }}
+          CI_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          reason=""
+          if [ "${DEPLOY_ENABLED,,}" != "true" ]; then
+            reason="repository variable DEPLOY_ENABLED is '${DEPLOY_ENABLED}'. Add DEPLOY_ENABLED=true under Settings > Secrets and variables > Actions > Variables > Repository variables"
+          elif [ "$EVENT" = "workflow_dispatch" ] && [ "$REF" != "refs/heads/main" ]; then
+            reason="manual deploys run only from main (this run used $REF)"
+          elif [ "$EVENT" = "workflow_run" ] && [ "$CI_CONCLUSION" != "success" ]; then
+            reason="CI finished with '$CI_CONCLUSION'"
+          elif [ "$EVENT" = "workflow_run" ] && [ "$CI_EVENT" != "push" ]; then
+            reason="CI was triggered by '$CI_EVENT', not a push"
+          elif [ "$EVENT" = "workflow_run" ] && [ "${CI_REPO,,}" != "${REPO,,}" ]; then
+            reason="CI ran for another repository ($CI_REPO)"
+          fi
+          if [ -n "$reason" ]; then
+            echo "::notice title=Deploy skipped::$reason"
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy:
     name: Build image and deploy to the VM
-    if: >-
-      vars.DEPLOY_ENABLED == 'true' && (
-        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
-        (github.event.workflow_run.conclusion == 'success' &&
-         github.event.workflow_run.event == 'push' &&
-         github.event.workflow_run.head_repository.full_name == github.repository)
-      )
+    needs: gate
+    if: needs.gate.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     environment: production
     env:
