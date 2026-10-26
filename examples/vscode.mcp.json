@@ -1,0 +1,19 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "ukm-token",
+      "description": "Universal Knowledge MCP personal token (ukm_...)",
+      "password": true
+    }
+  ],
+  "servers": {
+    "universal-knowledge": {
+      "type": "http",
+      "url": "https://knowledge.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${input:ukm-token}"
+      }
+    }
+  }
+}

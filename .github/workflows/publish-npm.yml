@@ -1,0 +1,61 @@
+name: Publish to npm
+
+# Publishes when a GitHub release is published (tag vX.Y.Z must match package.json).
+# Auth: npm trusted publishing (no secret) or an NPM_TOKEN repository secret.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ukm
+          POSTGRES_PASSWORD: ukm_ci_password
+          POSTGRES_DB: ukm_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ukm -d ukm_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgres://ukm:ukm_ci_password@localhost:5432/ukm_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+
+      - name: Check the release tag matches package.json
+        if: github.event_name == 'release'
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Release tag $GITHUB_REF_NAME does not match package.json version v$version"
+            exit 1
+          fi
+
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+      - name: Point package metadata at this repository (required for provenance)
+        run: npm pkg set repository.type=git "repository.url=git+${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+
+      - name: Publish
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

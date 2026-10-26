@@ -1,0 +1,30 @@
+# Render Blueprint (free web service). Render reads render.yaml from the repository root by default:
+# move this file there, or select it as the Blueprint path. Set DATABASE_URL to your database's pooled URL.
+services:
+  - type: web
+    name: universal-knowledge-mcp
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: MCP_AUTH_TOKEN
+        generateValue: true
+      - key: MCP_HOST
+        value: 0.0.0.0
+      - key: MCP_HTTP_SESSIONS
+        value: stateless
+      - key: AUTO_MIGRATE
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"
+      - key: REQUIRE_HTTPS
+        value: "true"
+      - key: DB_POOL_MAX
+        value: "3"
+      - key: DEFAULT_VISIBILITY
+        value: private
+      - key: LOG_LEVEL
+        value: info

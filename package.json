@@ -1,0 +1,68 @@
+{
+  "name": "universal-knowledge-mcp",
+  "version": "0.1.0",
+  "description": "Model-agnostic MCP server that gives AI clients a shared, permission-aware knowledge memory backed by one PostgreSQL database.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "knowledge-base",
+    "ai-memory",
+    "postgresql",
+    "claude",
+    "ai-agents"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "universal-knowledge-mcp": "dist/server/stdio.js",
+    "universal-knowledge-mcp-http": "dist/server/http.js",
+    "universal-knowledge-mcp-admin": "dist/cli/admin.js",
+    "universal-knowledge-mcp-migrate": "dist/database/migrate.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "migrate": "node dist/database/migrate.js",
+    "start": "node dist/server/http.js",
+    "start:stdio": "node dist/server/stdio.js",
+    "admin": "node dist/cli/admin.js",
+    "demo": "node dist/demo/run-demo.js",
+    "dev": "tsx watch src/server/http.ts",
+    "dev:stdio": "tsx src/server/stdio.ts",
+    "dev:migrate": "tsx src/database/migrate.ts",
+    "prepublishOnly": "npm run clean && npm run build",
+    "version": "node scripts/sync-version.mjs && git add src/version.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "pg": "^8.13.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/node": "^22.15.0",
+    "@types/pg": "^8.11.10",
+    "eslint": "^9.25.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.40.0",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "universal-knowledge": {
+      "command": "npx",
+      "args": ["-y", "universal-knowledge-mcp"],
+      "env": {
+        "DATABASE_URL": "postgres://ukm:change_me@localhost:5432/knowledge",
+        "MCP_AUTH_TOKEN": "REPLACE_WITH_AT_LEAST_32_RANDOM_CHARACTERS",
+        "AUTO_MIGRATE": "true"
+      }
+    }
+  }
+}

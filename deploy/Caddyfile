@@ -1,0 +1,6 @@
+# Automatic HTTPS for the MCP endpoint. flush_interval -1 streams SSE responses without buffering.
+{$UKM_DOMAIN} {
+	reverse_proxy server:3000 {
+		flush_interval -1
+	}
+}

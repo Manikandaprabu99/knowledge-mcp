@@ -1,0 +1,54 @@
+# Local development: PostgreSQL + one-off migrations + HTTP server on 127.0.0.1:3000.
+name: universal-knowledge-mcp
+
+x-app: &app
+  build: .
+  image: universal-knowledge-mcp:local
+  environment: &app-env
+    DATABASE_URL: postgres://ukm:${POSTGRES_PASSWORD:-ukm_local_dev_password}@db:5432/knowledge
+    MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:?Set MCP_AUTH_TOKEN in .env (see .env.example)}
+    MCP_AUTH_USER_ID: ${MCP_AUTH_USER_ID:-owner}
+    MCP_AUTH_ORG_ID: ${MCP_AUTH_ORG_ID:-default}
+    KNOWLEDGE_NAMESPACE: ${KNOWLEDGE_NAMESPACE:-default}
+    DEFAULT_VISIBILITY: ${DEFAULT_VISIBILITY:-private}
+    LOG_LEVEL: ${LOG_LEVEL:-info}
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ukm
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ukm_local_dev_password}
+      POSTGRES_DB: knowledge
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ukm -d knowledge"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    <<: *app
+    command: ["node", "dist/database/migrate.js"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  server:
+    <<: *app
+    environment:
+      <<: *app-env
+      MCP_SERVER_PORT: "3000"
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  pgdata:

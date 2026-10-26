@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "universal-knowledge": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://knowledge.example.com/mcp", "--header", "Authorization:${UKM_AUTH_HEADER}"],
+      "env": {
+        "UKM_AUTH_HEADER": "Bearer ukm_REPLACE_WITH_YOUR_PERSONAL_TOKEN"
+      }
+    }
+  }
+}

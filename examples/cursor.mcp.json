@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "universal-knowledge": {
+      "url": "https://knowledge.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:UKM_TOKEN}"
+      }
+    }
+  }
+}

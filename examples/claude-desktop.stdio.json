@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "universal-knowledge": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/universal-knowledge-mcp/dist/server/stdio.js"],
+      "env": {
+        "DATABASE_URL": "postgres://ukm:change_me@localhost:5432/knowledge",
+        "MCP_USER_TOKEN": "ukm_REPLACE_WITH_YOUR_PERSONAL_TOKEN"
+      }
+    }
+  }
+}
